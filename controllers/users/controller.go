@@ -7,31 +7,38 @@ import (
 	"github.com/gofiber/fiber/v2"
 	"github.com/golang-jwt/jwt/v4"
 	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/mongo"
 
 	"goex/config/messages"
 	"goex/db/dbHelper"
+	"goex/db/mongoHelper"
 	"goex/entity/User"
 	goexJWT "goex/middlewares/jwt"
 )
 
 func UserLoginHandler(c *fiber.Ctx) error {
-	loginForm:=new(User.UserLogin)
+	loginForm := new(User.UserLogin)
 
 	if err := c.BodyParser(loginForm); err != nil {
 
 		return c.JSON(fiber.Map{"data": messages.InvalidInputForm})
 	}
-	userModel := new(User.Model)
-	result := dbHelper.FindOneGo(c.Context(), &bson.D{{Key: "username", Value: loginForm.Username}, {Key: "password", Value: loginForm.Password}}, userModel)
-	if err := <-result; err != nil {
-		fmt.Print(err)
-		return c.SendStatus(fiber.StatusUnauthorized)
+
+	db := mongoHelper.MongoContainer[*User.Model]{Ctx: c.Context(), Model: &User.Model{}}
+	_, err := db.FindOne(&bson.D{{Key: "username", Value: loginForm.Username}, {Key: "password", Value: loginForm.Password}})
+	if err != nil{
+		if err==mongo.ErrNoDocuments {
+			return c.JSON(fiber.Map{"data": "user not found "})
+		}else{ 
+			return c.JSON(fiber.Map{"data": err.Error()})
+		}
 	}
 
+	userModel := db.Model.(*User.Model)
 	claims := jwt.MapClaims{
-		"name":  userModel.Username,
-		"admin": userModel.Admin,
-		"expire":   time.Now().Add(time.Hour * 72).Unix(),
+		"name":   userModel.Username,
+		"admin":  userModel.Admin,
+		"expire": time.Now().Add(time.Hour * 72).Unix(),
 	}
 
 	token := jwt.NewWithClaims(jwt.SigningMethodRS256, claims)
@@ -95,7 +102,7 @@ func RemoveUser(c *fiber.Ctx) error {
 	user := c.Locals("user").(*jwt.Token)
 	claims := user.Claims.(jwt.MapClaims)
 	if admin, ok := claims["admin"].(bool); ok {
-		if !admin{
+		if !admin {
 			return c.JSON(fiber.Map{"data": messages.HAVNTGRANT})
 		}
 		if err := c.BodyParser(inputForm); err != nil {
