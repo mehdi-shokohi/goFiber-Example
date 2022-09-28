@@ -79,7 +79,7 @@ func AddNewUser(c *fiber.Ctx) error {
 	userModel := new(User.Model)
 	userModel.Username = inputForm.Username
 	userModel.Password = inputForm.Password
-	userModel.Admin = false
+	userModel.Admin = inputForm.Admin
 	userModel.FirstName = inputForm.FirstName
 	userModel.LastName = inputForm.LastName
 	result := dbHelper.SaveGo(c.Context(), userModel)
@@ -95,7 +95,7 @@ func RemoveUser(c *fiber.Ctx) error {
 	user := c.Locals("user").(*jwt.Token)
 	claims := user.Claims.(jwt.MapClaims)
 	if admin, ok := claims["admin"].(bool); ok {
-		if admin == false {
+		if !admin{
 			return c.JSON(fiber.Map{"data": messages.HAVNTGRANT})
 		}
 		if err := c.BodyParser(inputForm); err != nil {

@@ -7,13 +7,12 @@ type ModelUserList struct {
 	MelliCode string `json:"melli_code"`
 }
 
-
 type RegisterForm struct {
 	FirstName string `json:"first_name"`
-	LastName string `json:"last_name"`
-	Username string `json:"username"`
-	Password string `json:"password"`
-	Type string `json:"type"`
+	LastName  string `json:"last_name"`
+	Username  string `json:"username"`
+	Password  string `json:"password"`
+	Admin     bool   `json:"admin"`
 }
 
 type UserLogin struct {
