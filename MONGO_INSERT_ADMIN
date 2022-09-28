@@ -1,0 +1,6 @@
+db.getCollection("users").insert( {
+    _id: ObjectId("63346ed8d0e9f43adf369495"),
+    username: "admin",
+    password: "1234",
+    admin: true
+} );
