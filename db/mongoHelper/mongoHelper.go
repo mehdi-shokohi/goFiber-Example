@@ -191,57 +191,10 @@ func (m *MongoContainer[T]) FindOne(query *bson.D, options ...*options.FindOneOp
 	return nil, err
 }
 
-// func FindOneGo(ctx context.Context, query *bson.D, record Recorder, options ...*options.FindOneOptions) chan error {
-// 	res := make(chan error)
-// 	go FindOne(ctx, query, record, res, options...)
-// 	return res
-// }
-
-// func FindOneMapGo(ctx context.Context, query *bson.D, record map[string]interface{}, collectionName string, options ...*options.FindOneOptions) chan error {
-// 	res := make(chan error)
-// 	go FindOneMap(ctx, query, record, collectionName, res, options...)
-// 	return res
-// }
-
-// func FindOneSync(ctx context.Context, query *bson.D, record Recorder) (err error) {
-// 	res := make(chan error)
-// 	go FindOne(ctx, query, record, res)
-// 	go FindOne(ctx, query, record, res)
-// 	return <-res
-// }
 
 type Decoder func(model Recorder) error
 
-// func FindAllOnMap(ctx context.Context, collectionName string, query *bson.D, result chan DecoderMap, opts ...*options.FindOptions) {
-// 	var collection *mongo.Collection
-// 	if cs, ok := ctx.(mongo.SessionContext); ok {
-// 		collection = cs.Client().Database(conf.GetMongodbName()).Collection(collectionName)
-// 	} else {
-// 		var release func()
-// 		collection, release = GetCollection(collectionName)
-// 		defer release()
-// 	}
-// 	cur, err := collection.Find(ctx, query, opts...)
-// 	if err != nil {
-// 		result <- func(_ map[string]interface{}) error { return err }
-// 		close(result)
-// 		return
-// 	}
 
-// 	defer func() { _ = cur.Close(ctx) }()
-// 	for cur.Next(ctx) {
-// 		result <- func(cursor mongo.Cursor) DecoderMap {
-// 			return func(model map[string]interface{}) error {
-// 				err := cursor.Decode(model)
-// 				if err != nil {
-// 					return err
-// 				}
-// 				return nil
-// 			}
-// 		}(*cur)
-// 	}
-// 	close(result)
-// }
 func (m *MongoContainer[T]) FindAll(query *bson.D, opts ...*options.FindOptions) ( []*T,  error) {
 	var collection *mongo.Collection
 	if cs, ok := m.Ctx.(mongo.SessionContext); ok {
@@ -271,16 +224,7 @@ func (m *MongoContainer[T]) FindAll(query *bson.D, opts ...*options.FindOptions)
 return results, nil
 }
 
-// func FindAllGo(ctx context.Context, collectionName string, query *bson.D, opts ...*options.FindOptions) chan Decoder {
-// 	res := make(chan Decoder)
-// 	go FindAll(ctx, collectionName, query, res, opts...)
-// 	return res
-// }
-// func FindAllOnMapGo(ctx context.Context, collectionName string, query *bson.D, opts ...*options.FindOptions) chan DecoderMap {
-// 	res := make(chan DecoderMap)
-// 	go FindAllOnMap(ctx, collectionName, query, res, opts...)
-// 	return res
-// }
+
 
 func (m *MongoContainer[T]) FindByID(id interface{}) ( interface{},  error) {
 	var collection *mongo.Collection
@@ -301,17 +245,6 @@ func (m *MongoContainer[T]) FindByID(id interface{}) ( interface{},  error) {
 	return one, err
 }
 
-// func FindByIDGo(ctx context.Context, record Recorder, id interface{}) chan error {
-// 	res := make(chan error)
-// 	go FindByID(ctx, record, id, res)
-// 	return res
-// }
-
-// func FindByIDSync(ctx context.Context, record Recorder, id interface{}) error {
-// 	res := make(chan error)
-// 	go FindByID(ctx, record, id, res)
-// 	return <-res
-// }
 
 func (m *MongoContainer[T]) DeleteOneGo(b *bson.D, opts ...*options.DeleteOptions) (result interface{}, err error) {
 
@@ -332,32 +265,7 @@ func (m *MongoContainer[T]) DeleteOneGo(b *bson.D, opts ...*options.DeleteOption
 	return delete, nil
 }
 
-// func DeleteRecordGo(ctx context.Context, record Recorder) chan error {
-// 	return DeleteOneGo(ctx, record.GetCollectionName(), &bson.D{{Key: "_id", Value: record.GetID()}})
-// }
 
-// func DeleteManyRecordGo(ctx context.Context, records []Recorder, deletedCount *int64) chan error {
-// 	query := bson.A{}
-// 	var collectionName string
-// 	c := 0
-// 	for _, r := range records {
-// 		if c == 0 {
-// 			collectionName = r.GetCollectionName()
-// 		}
-// 		if r.GetCollectionName() != collectionName {
-// 			e := make(chan error)
-// 			go func() {
-// 				e <- errors.New("records from different collection not supported")
-// 			}()
-// 			return e
-// 		}
-// 		collectionName = r.GetCollectionName()
-// 		query = append(query, bson.E{Key: "_id", Value: r.GetID()})
-// 		c++
-// 	}
-
-// 	return DeleteManyGo(ctx, collectionName, &bson.D{{Key: "$or", Value: query}}, deletedCount)
-// }
 
 func (m *MongoContainer[T]) DeleteMany(b *bson.D, opts ...*options.DeleteOptions) (result interface{}, err error) {
 
@@ -386,46 +294,6 @@ type AdvancedQuery struct {
 	_c          context.Context
 }
 
-// func NewAdvancedQuery(collection string, fields string, query string, pagination *Pagination, project *bson.M) *AdvancedQuery {
-// 	option := pagination.CreateFindOption()
-// 	aq := &AdvancedQuery{_collection: collection}
-// 	queryParams := strings.Split(query, " ")
-// 	fieldArray := strings.Split(fields, " ")
-// 	signedFieldsArray := make([]bson.M, len(fieldArray))
-// 	for i, f := range fieldArray {
-// 		signedFieldsArray[i] = bson.M{"$toString": "$" + f}
-// 	}
-
-// 	d := make([]interface{}, 2)
-// 	d[0] = bson.M{"$toLower": "$" + fieldArray[0]}
-// 	d[1] = queryParams[0]
-
-// 	addFields := bson.M{
-// 		"_aq_selectedFields": bson.M{"$concat": signedFieldsArray},
-// 		//"_aq_score":          bson.M{"$indexOfCP": d},
-// 	}
-
-// 	matchConditions := make([]bson.M, len(queryParams))
-// 	for i, q := range queryParams {
-// 		matchConditions[i] = bson.M{"_aq_selectedFields": primitive.Regex{
-// 			Pattern: "" + q + "",
-// 			Options: "gi",
-// 		}}
-// 	}
-
-// 	match := bson.M{"$and": matchConditions}
-// 	aq._pipeline = []bson.M{
-// 		{"$addFields": addFields},
-// 		{"$match": match},
-// 		//{"$sort": bson.M{"_aq_score": 1}},
-// 	}
-// 	if project != nil {
-// 		aq._pipeline = append(aq._pipeline, *project)
-// 	}
-// 	aq._limit = bson.M{"$limit": option.Limit}
-// 	aq._skip = bson.M{"$skip": option.Skip}
-// 	return aq
-// }
 
 func (aq *AdvancedQuery) QueryGo(ctx context.Context) chan Decoder {
 	res := make(chan Decoder)

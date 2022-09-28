@@ -9,10 +9,10 @@ import (
 const RouteContext = "/user"
 
 func RouteDecision(api fiber.Router) {
-	apiGroup := api.Group(RouteContext)
-	apiGroup.Post("/login", UserLoginHandler)
-	apiGroup.Get("/data", goexJWT.New(), Getuserdata)
-	apiGroup.Post("/", goexJWT.New(), AddNewUser)
-	apiGroup.Delete("/",goexJWT.New(), RemoveUser)
+	api.Post("/user/login", UserLoginHandler)
+	apiGroup := api.Group(RouteContext, goexJWT.New())
+	apiGroup.Get("/data", Getuserdata)
+	apiGroup.Post("/", AddNewUser)
+	apiGroup.Delete("/", RemoveUser)
 
 }

@@ -23,8 +23,8 @@ func UserLoginHandler(c *fiber.Ctx) error {
 
 		return c.JSON(fiber.Map{"data": messages.InvalidInputForm})
 	}
-	userModel:=new(User.Model)
-	db:=mongoHelper.NewMongo( c.Context(),userModel)
+	// userModel:=new(User.Model)
+	db:=mongoHelper.NewMongo( c.Context(),&User.Model{})
 	_, err := db.FindOne(&bson.D{{Key: "username", Value: loginForm.Username}, {Key: "password", Value: loginForm.Password}})
 	if err != nil{
 		if err==mongo.ErrNoDocuments {
@@ -34,7 +34,7 @@ func UserLoginHandler(c *fiber.Ctx) error {
 		}
 	}
 
-	// userModel := db.Model
+	userModel := db.Model.(*User.Model)
 	claims := jwt.MapClaims{
 		"name":   userModel.Username,
 		"admin":  userModel.Admin,
