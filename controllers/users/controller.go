@@ -1,6 +1,7 @@
 package usersController
 
 import (
+	"errors"
 	"fmt"
 	"time"
 
@@ -24,12 +25,12 @@ func UserLoginHandler(c *fiber.Ctx) error {
 		return c.JSON(fiber.Map{"data": messages.InvalidInputForm})
 	}
 	// userModel:=new(User.Model)
-	db:=mongoHelper.NewMongo( c.Context(),&User.Model{})
+	db := mongoHelper.NewMongo(c.Context(), &User.Model{})
 	_, err := db.FindOne(&bson.D{{Key: "username", Value: loginForm.Username}, {Key: "password", Value: loginForm.Password}})
-	if err != nil{
-		if err==mongo.ErrNoDocuments {
+	if err != nil {
+		if err == mongo.ErrNoDocuments {
 			return c.JSON(fiber.Map{"data": "user not found "})
-		}else{ 
+		} else {
 			return c.JSON(fiber.Map{"data": err.Error()})
 		}
 	}
@@ -58,7 +59,7 @@ func UserLoginHandler(c *fiber.Ctx) error {
 func Getuserdata(c *fiber.Ctx) error {
 	user := c.Locals("user").(*jwt.Token)
 	claims := user.Claims.(jwt.MapClaims)
-
+	panic(errors.New("error"))
 	return c.JSON(fiber.Map{"data": claims})
 }
 
