@@ -1,15 +1,20 @@
 package userGroups
-import(
-	"github.com/gofiber/fiber/v2"
-	"goex/config"
+
+import (
 	"fmt"
 	"reflect"
 	"sync"
+
+	"github.com/gofiber/fiber/v2"
 	jsoniter "github.com/json-iterator/go"
+
+	conf "goex/config"
 )
+
 var poolSender = sync.Pool{New: func() interface{} {
 	return new(Send)
 }}
+
 type Send struct {
 	C            *fiber.Ctx
 	Status       bool
@@ -51,16 +56,17 @@ func (provider *Send) Send() {
 	}
 
 }
+
 type Error struct {
 	Code    int64       `json:"code"`
 	Message string      `json:"message"`
 	Data    interface{} `json:"data"`
 }
+
 func Clear(v interface{}) {
 	p := reflect.ValueOf(v).Elem()
 	p.Set(reflect.Zero(p.Type()))
 }
-
 
 func releasePoolSender(response *Send) {
 	Clear(response)
@@ -89,36 +95,36 @@ func Sender(connection *fiber.Ctx, status int, responseCode int, error *Error, d
 	response.Send()
 	//connection.Abort()
 }
-func SendErrorUserGroups() func(c *fiber.Ctx)error{
-	return func(c *fiber.Ctx)error{
-	defer func(){
-	if r := recover(); r != nil {
-		
-		fmt.Println(r)
+func SendErrorUserGroups() func(c *fiber.Ctx) error {
+	return func(c *fiber.Ctx) error {
+		defer func() {
+			if r := recover(); r != nil {
 
-		if e, ok := r.(error); ok {
-			Sender(c, conf.InterErrorCode, 200, &Error{
-				Code:    400,
-				Message: e.Error(),
-				Data:    nil,
-			}, nil)
+				fmt.Println(r)
 
-		} else if v, ok := r.(map[string]error); ok {
-			t := ""
-			for eKey, errMessage := range v {
-				t += eKey + errMessage.Error() + " , "
+				if e, ok := r.(error); ok {
+					Sender(c, conf.InterErrorCode, 200, &Error{
+						Code:    400,
+						Message: e.Error(),
+						Data:    nil,
+					}, nil)
+
+				} else if v, ok := r.(map[string]error); ok {
+					t := ""
+					for eKey, errMessage := range v {
+						t += eKey + errMessage.Error() + " , "
+					}
+					Sender(c, conf.InterErrorCode, 200, &Error{
+						Code:    400,
+						Message: t,
+						Data:    nil,
+					}, nil)
+				}
 			}
-			Sender(c, conf.InterErrorCode, 200, &Error{
-				Code:    400,
-				Message: t,
-				Data:    nil,
-			}, nil)
-		}
-	}
 
-}()
-c.Next()
-return nil
-}
+		}()
+		c.Next()
+		return nil
+	}
 
 }

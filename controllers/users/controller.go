@@ -59,7 +59,7 @@ func UserLoginHandler(c *fiber.Ctx) error {
 func Getuserdata(c *fiber.Ctx) error {
 	user := c.Locals("user").(*jwt.Token)
 	claims := user.Claims.(jwt.MapClaims)
-	panic(errors.New("error"))
+	// panic(errors.New("error"))  // For Error Handler On RouterGroup
 	return c.JSON(fiber.Map{"data": claims})
 }
 
