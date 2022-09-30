@@ -1,7 +1,6 @@
 package usersController
 
 import (
-	"errors"
 	"fmt"
 	"time"
 
