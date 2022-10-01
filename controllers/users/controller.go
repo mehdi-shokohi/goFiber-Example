@@ -15,7 +15,15 @@ import (
 	"goex/entity/User"
 	goexJWT "goex/middlewares/jwt"
 )
-
+// @Login and get Token
+// @Login.
+// @Description get the status of server.
+// @Tags Login
+// @Produce json
+// @Param username formData string true "User Name"
+// @Param password formData string true "Pass word"
+// @Success 200 {object} map[string]interface{}
+// @Router /user/login [post]
 func UserLoginHandler(c *fiber.Ctx) error {
 	loginForm := new(User.UserLogin)
 
@@ -51,10 +59,18 @@ func UserLoginHandler(c *fiber.Ctx) error {
 		return c.SendStatus(fiber.StatusInternalServerError)
 	}
 
-	return c.JSON(fiber.Map{"Authorization": t})
+	return c.JSON(fiber.Map{"Authorization": "Bearer "+t})
 
 }
-
+// Extract Jwt Session Data godoc
+// @Summary Show the status of server.
+// @Description get the status of server.
+// @Tags Get User Data
+// @Accept */*
+// @Security Bearer
+// @Produce json
+// @Success 200 {object} map[string]interface{}
+// @Router /user/data [get]
 func Getuserdata(c *fiber.Ctx) error {
 	user := c.Locals("user").(*jwt.Token)
 	claims := user.Claims.(jwt.MapClaims)
