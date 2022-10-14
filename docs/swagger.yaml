@@ -1,3 +1,24 @@
+definitions:
+  User.RegisterForm:
+    properties:
+      admin:
+        type: boolean
+      first_name:
+        type: string
+      last_name:
+        type: string
+      password:
+        type: string
+      username:
+        type: string
+    type: object
+  User.UserLogin:
+    properties:
+      password:
+        type: string
+      username:
+        type: string
+    type: object
 info:
   contact:
     email: support@swagger.io
@@ -11,6 +32,27 @@ info:
   title: Swagger Example API
   version: "1.0"
 paths:
+  /user:
+    post:
+      parameters:
+      - description: Enter New User Data
+        in: body
+        name: RegisterNewUser
+        required: true
+        schema:
+          $ref: '#/definitions/User.RegisterForm'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - Bearer: []
+      tags:
+      - Add user
   /user/data:
     get:
       consumes:
@@ -31,18 +73,13 @@ paths:
       - Get User Data
   /user/login:
     post:
-      description: get the status of server.
       parameters:
-      - description: User Name
-        in: formData
-        name: username
+      - description: enter username and password ,eg. admin , 1234
+        in: body
+        name: LoginBody
         required: true
-        type: string
-      - description: Pass word
-        in: formData
-        name: password
-        required: true
-        type: string
+        schema:
+          $ref: '#/definitions/User.UserLogin'
       produces:
       - application/json
       responses:

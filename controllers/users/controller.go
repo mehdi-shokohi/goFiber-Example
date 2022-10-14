@@ -15,13 +15,12 @@ import (
 	"goex/entity/User"
 	goexJWT "goex/middlewares/jwt"
 )
+
 // @Login and get Token
 // @Login.
-// @Description get the status of server.
 // @Tags Login
 // @Produce json
-// @Param username formData string true "User Name"
-// @Param password formData string true "Pass word"
+// @Param LoginBody body User.UserLogin true "enter username and password ,eg. admin , 1234"
 // @Success 200 {object} map[string]interface{}
 // @Router /user/login [post]
 func UserLoginHandler(c *fiber.Ctx) error {
@@ -59,9 +58,10 @@ func UserLoginHandler(c *fiber.Ctx) error {
 		return c.SendStatus(fiber.StatusInternalServerError)
 	}
 
-	return c.JSON(fiber.Map{"Authorization": "Bearer "+t})
+	return c.JSON(fiber.Map{"Authorization": "Bearer " + t})
 
 }
+
 // Extract Jwt Session Data godoc
 // @Summary Show the status of server.
 // @Description get the status of server.
@@ -77,7 +77,14 @@ func Getuserdata(c *fiber.Ctx) error {
 	// panic(errors.New("error"))  // For Error Handler On RouterGroup
 	return c.JSON(fiber.Map{"data": claims})
 }
-
+// @Add new User
+// @Add New User.
+// @Tags Add user
+// @Produce json
+// @Security Bearer
+// @Param RegisterNewUser body User.RegisterForm true "Enter New User Data"
+// @Success 200 {object} map[string]interface{}
+// @Router /user [post]
 func AddNewUser(c *fiber.Ctx) error {
 	inputForm := new(User.RegisterForm)
 	user := c.Locals("user").(*jwt.Token)
